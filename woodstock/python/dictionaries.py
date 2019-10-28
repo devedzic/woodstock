@@ -15,6 +15,8 @@ def demonstrate_dictionaries():
     - using the keys() and values() functions
     """
 
+
+
     # create a blank (empty) dictionary
     woodstock = {}
     print(type(woodstock))
