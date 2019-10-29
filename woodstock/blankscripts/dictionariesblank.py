@@ -1,4 +1,15 @@
 """Demonstrates dictionaries
+From: https://qr.ae/TWCAvj:
+Python uses dictionaries all over the place:
+- the variables and functions in a module - stored in a dictionary
+- the local variables in a function - stored in a dictionary
+- the implementation of a function - a dictionary
+- a class is a dictionary
+- an instance of a class is another dictionary
+- the modules your program has imported - you guessed it - another dictionary
+- even Python set objects are implemented as modified dictionaries
+To paraphrase Tim Peter's 'Zen of Python': "dictionaries are great - let's do more of them".
+Read more at https://qr.ae/TWCAvj.
 """
 
 

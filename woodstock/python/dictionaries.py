@@ -81,6 +81,15 @@ def sort_dictionary(d, by):
     # else:
     #     return None
 
+    # using operator.itemgetter()
+    # from operator import itemgetter
+    # if by == 'k':
+    #     return dict(sorted(d.items(), key=itemgetter(0)))
+    # elif by == 'v':
+    #     return dict(sorted(d.items(), key=itemgetter(1)))
+    # else:
+    #     return None
+
     # using lambda
     if by == 'k':
         return dict(sorted(d.items(), key=lambda item: item[0]))
