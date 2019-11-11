@@ -5,19 +5,10 @@ from enum import Enum
 from datetime import date
 
 
-def format_duration(seconds):
-    """Converts a duration from seconds to string of the form '<mm>:<ss>'.
-    """
-
-
 def format_date(a_date):
     """Converts a date from datetime.date() to a string of the form '<month> <day>, <year>'.
-    Uses strftime() method of datetime.date class.
-    """
-
-
-class Lives(Enum):
-    """The enum indicating the status of being alive or deceased.
+    Uses strftime() method of datetime.date class and its pre-defined format codes from
+    https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes
     """
 
 

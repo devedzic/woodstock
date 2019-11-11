@@ -3,6 +3,7 @@
 
 
 from woodstock.util import utility
+from woodstock.music.enums import Vocals, Instrumet
 
 
 class Performer:
@@ -63,8 +64,6 @@ class Performer:
         """
 
         print(self.name, f'playing {song_title}...', end=' ')
-        # print(*args if args else '')
-        # print(*args if args else '' + ', '.join([v for k, v in kwargs]) if kwargs else '')
         print(*args if args else '', ', '.join([v for k, v in kwargs.items()]) if kwargs else '')
 
     def play_song(self, song_title, *args, **kwargs):
@@ -91,6 +90,84 @@ class Performer:
         else:
             name = split[0].rstrip()
         return cls(name, is_band)
+
+
+class Singer(Performer):
+    """The class describing the concept of singer.
+    It is assumed that a singer is sufficiently described as a Performer,
+    with the addition of whether they are a lead or a background singer.
+    """
+
+    # Without multiple inheritance
+    # def __init__(self, name, vocals, is_band=False):
+    #     super().__init__(name, is_band=is_band)
+    #     self.vocals = vocals if isinstance(vocals, Vocals) else None
+
+    # With multiple inheritance (works for single-line inheritance as well)
+    def __init__(self, vocals, **kwargs):
+        super().__init__(**kwargs)                                      # forwards all unused arguments
+        self.vocals = vocals if isinstance(vocals, Vocals) else None
+
+    def __str__(self):
+        return f'{self.name}, {self.vocals.name.lower().replace("_", " ")}'
+
+    def __eq__(self, other):
+        return super().__eq__(other) and (self.vocals == other.vocals) if isinstance(other, Singer) else False
+
+    def play(self, song_title, *args, **kwargs):
+        """Overrides the play() method from superclass.
+        Assumes that song_title, *args (expressions of gratitude) and kwargs.values() (messages) are strings.
+        Prints song_title, expressions of gratitude and messages. A call example:
+            <singer>.play(song_title, *['Thank you!', 'You're wonderful!], love='We love you!')
+        """
+
+        # super().play(song_title, *args, **kwargs)
+        print(self.name, f'singing {song_title}...', end=' ')
+        print(*args if args else '', ', '.join([v for k, v in kwargs.items()]) if kwargs else '')
+
+
+class Songwriter(Performer):
+    """The class describing the concept of songwriter.
+    It is assumed that a songwriter is sufficiently described as a Performer
+    who writes songs and plays an instrument.
+    """
+
+    # Without multiple inheritance
+    # def __init__(self, name, instrument, is_band=False):
+    #     super().__init__(name, is_band=is_band)
+    #     self.instrument = instrument if isinstance(instrument, Instrumet) else None
+    #     self.writes_songs = True
+
+    # With multiple inheritance (works for single-line inheritance as well)
+    def __init__(self, instrument, **kwargs):
+        super().__init__(**kwargs)                                      # forwards all unused arguments
+        self.instrument = instrument if isinstance(instrument, Instrumet) else None
+        self.writes_songs = True
+
+    def __str__(self):
+        return f'{self.name}, songwriter ({self.instrument.name.lower().replace("_", " ")})'
+
+    def __eq__(self, other):
+        return super().__eq__(other) and self.writes_songs if isinstance(other, Songwriter) else False
+
+    def what_do_you_do(self):
+        """Just a simple method to describe the concept of songwriter.
+        """
+
+        return f"I'm a songwriter and I play {self.instrument}." if self.writes_songs else f"I play {self.instrument}."
+
+
+class SingerSongwriter(Singer, Songwriter):
+    """The class describing the concept of singer-songwriter.
+    It is assumed that a singer-songwriter is sufficiently described as a Singer who is simultaneously a Songwriter.
+    """
+
+    # def __init__(self, name, vocals, instrument, is_band=False):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)                                      # forwards all unused arguments
+
+    def __str__(self):
+        return super().__str__() + f', songwriter ({self.instrument.name.lower().replace("_", " ")})'
 
 
 if __name__ == "__main__":
@@ -169,4 +246,39 @@ if __name__ == "__main__":
     print(Performer.from_str(melanie_str))
     print(melanie.from_str(melanie_str))
     print(melanie.from_str('unknown'))
+    print()
+
+    # Demonstrate inheritance
+    # object class (like the Object class in Java; all classes inherit from object
+    #   try, e.g., list.__mro__ in the console)
+    #   object class defines object.__eq__(self, other) etc.
+    #   object.__ne__(self, other), the inverse of object.__eq__(self, other),
+    #   is provided by Python automatically once object.__eq__(self, other) is implemented
+    rogerDaltrey = Singer(name='Roger Daltrey', vocals=Vocals.LEAD_VOCALS)
+    print(rogerDaltrey)
+    # print(rogerDaltrey == Singer('Roger Daltrey', vocals=Vocals.LEAD_VOCALS))
+    print(rogerDaltrey == Singer(name='Roger Daltrey', vocals=Vocals.BACKGROUND_VOCALS))
+    print()
+    peteTownshend = Songwriter(name='Pete Townshend', instrument=Instrumet.LEAD_GUITAR)
+    print(peteTownshend)
+    print(peteTownshend == Songwriter(name='Pete Townshend', instrument=Instrumet.LEAD_GUITAR))
+    print(peteTownshend == Songwriter(name='Pete Townshend', instrument=Instrumet.RHYTHM_GUITAR))
+    peteTownshend.writes_songs = False
+    print(peteTownshend == Songwriter(name='Pete Townshend', instrument=Instrumet.RHYTHM_GUITAR))
+
+    # Demonstrate method overriding
+    # <singer>.play(song_title, *['Thank you!', 'You're wonderful!], love='We love you!')
+    rogerDaltrey.play('See Me, Feel Me', *['Thank you!', 'You are wonderful!'], yell='Yeah!')
+    print()
+
+    # Demonstrate multiple inheritance and MRO.
+    # Make sure to read this first: https://stackoverflow.com/a/50465583/1899061 (especially Scenario 3).
+    # print(Singer.__mro__)
+    # print(SingerSongwriter.__mro__)
+    melanie = SingerSongwriter(name='Melanie',
+                               is_band=False,
+                               vocals=Vocals.LEAD_VOCALS,
+                               instrument=Instrumet.RHYTHM_GUITAR)
+    print(melanie)
+    print()
 

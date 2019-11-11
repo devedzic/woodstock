@@ -3,6 +3,7 @@
 
 
 from woodstock.util import utility
+from woodstock.music.enums import Vocals, Instrumet
 
 
 class Performer:
@@ -56,6 +57,45 @@ class Performer:
         pass
 
 
+class Singer(Performer):
+    """The class describing the concept of singer.
+    It is assumed that a singer is sufficiently described as a Performer,
+    with the addition of whether they are a lead or a background singer.
+    """
+
+    # Version 1 - no multiple inheritance
+
+    # Version 2 - with multiple inheritance
+
+    def play(self, song_title, *args, **kwargs):
+        """Overrides the play() method from superclass.
+        Assumes that song_title, *args (expressions of gratitude) and kwargs.values() (messages) are strings.
+        Prints song_title, expressions of gratitude and messages. A call example:
+            <singer>.play(song_title, *['Thank you!', 'You're wonderful!], love='We love you!')
+        """
+
+
+class Songwriter(Performer):
+    """The class describing the concept of songwriter.
+    It is assumed that a songwriter is sufficiently described as a Performer
+    who writes songs and plays an instrument.
+    """
+
+    # Version 1 - no multiple inheritance
+
+    # Version 2 - with multiple inheritance
+
+    def what_do_you_do(self):
+        """Just a simple method to describe the concept of songwriter.
+        """
+
+
+class SingerSongwriter(Singer, Songwriter):
+    """The class describing the concept of singer-songwriter.
+    It is assumed that a singer-songwriter is sufficiently described as a Singer who is simultaneously a Songwriter.
+    """
+
+
 if __name__ == "__main__":
 
     pass
@@ -105,5 +145,20 @@ if __name__ == "__main__":
     print()
 
     # Demonstrate @classmethod (from_str())
+    print()
+
+    # Demonstrate inheritance
+    # object class (like the Object class in Java; all classes inherit from object
+    #   try, e.g., list.__mro__ in the console)
+    #   object class defines object.__eq__(self, other) etc.
+    #   object.__ne__(self, other), the inverse of object.__eq__(self, other),
+    #   is provided by Python automatically once object.__eq__(self, other) is implemented
+    print()
+
+    # Demonstrate method overriding
+    print()
+
+    # Demonstrate multiple inheritance and MRO.
+    # Make sure to read this first: https://stackoverflow.com/a/50465583/1899061 (especially Scenario 3).
     print()
 
