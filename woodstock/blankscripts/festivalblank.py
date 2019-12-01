@@ -22,8 +22,32 @@ class FestivalError(Exception):
     pass
 
 
+class FestivalStartDateException(FestivalError):
+    """Exception raised when a the tart date of a festival lineup is not between start and end dates of the festival.
+    """
+
+
+def check_lineup_date(lineup, start_date, end_date):
+    """Checks if lineup.date is between start_date and end_date."""
+
+
 class LineupDateException(FestivalError):
     """Exception raised when a the date of a festival lineup is not between start and end dates of the festival.
+    """
+
+
+class FestivalEncoder(json.JSONEncoder):
+    """JSON encoder for Festival objects.
+    """
+
+    def default(self, o):
+        # recommendation: always use double quotes with JSON
+
+        pass
+
+
+def festival_json_to_py(festival_json):
+    """JSON decoder for Festival objects (object_hook parameter in json.loads()).
     """
 
 
@@ -62,7 +86,7 @@ if __name__ == "__main__":
     # Demonstrate exceptions - the general structure of try-except statements, possibly including else and finally
     print()
 
-    # Demonstrate exceptions - except: <exception> as <name> (and then type(name), <name>.args,...)
+    # Demonstrate exceptions - except: <exception> as <e> (and then type(<e>), <e>.__class__.__name__, <e>.args,...)
     print()
 
     # Demonstrate exceptions - user-defined exceptions (wrong festival date(s), wrong lineup date)
@@ -81,6 +105,13 @@ if __name__ == "__main__":
     print()
 
     # Demonstrate get_project_dir(), get_data_dir() and writing/reading to/from files in data dir
+    print()
+
+    # Demonstrate JSON encoding/decoding of Festival objects
+    # Single object
+    print()
+
+    # List of objects
     print()
 
 

@@ -2,8 +2,9 @@
 """
 
 from datetime import date, datetime, time
+import json
 
-from woodstock.music.performer import Performer
+from woodstock.music.performer import Performer, PerformerEncoder, performer_json_to_py
 from woodstock.util.utility import format_date
 
 
@@ -31,7 +32,7 @@ class Lineup():
                if self.performers else f'Lineup for {format_date(self.date)}: not specified'
 
     def __eq__(self, other):
-        return self == other
+        return self == other if isinstance(other, Lineup) else False
 
     # Alternative constructor 1
     @classmethod
@@ -85,6 +86,70 @@ def next_performer(lineup):
             print('Another one:')
 
 
+class LineupEncoder(json.JSONEncoder):
+    """JSON encoder for Lineup objects.
+    """
+
+    # def default(self, o):                             # doesn't work well, '__Lineup__' is absorbed everywhere in dict
+    #     # attr_dict = getattr(o, '__dict__', str(o))
+    #     # print(type(attr_dict))
+    #     # return {'__Lineup__': str(attr_dict)}
+    #     return getattr(o, '__dict__', str(o))
+
+    # def default(self, o):                             # works well, but converts date objects to isoformat
+    #     return {'__Lineup__': json.dumps(o, default=lambda x: getattr(x, '__dict__', str(x)))}
+
+    # def default(self, o):                             # works well for encoding,
+    #     if isinstance(o, date):                       # but makes double-quote problems when decoding
+    #         return o.isoformat()                      # returns datetime isoformat instead of date isoformat (?)
+    #     if isinstance(o, Lineup):
+    #         return {"__Lineup__": o.__dict__}
+    #     return {f"__{o.__class__.__name__}__": o.__dict__}
+
+    def default(self, o):
+        if isinstance(o, Lineup):
+            d = o.__dict__.copy()
+            d['date'] = o.date.isoformat()
+            d['performers'] = json.dumps([p for p in o.performers], cls=PerformerEncoder, indent=4)
+            return {"__Lineup__": d}
+        return {f"__{o.__class__.__name__}__": o.__dict__}
+
+
+def lineup_json_to_py(lineup_json):
+    """JSON decoder for Lineup objects (object_hook parameter in json.loads()).
+    """
+
+    # if '__Lineup__' in lineup_json:                   # works well, but has trouble with isoformat of date objects
+    #     # lineup = Lineup(Performer(''), date=date.today())
+    #     lineup = Lineup()
+    #     # lineup.__dict__.update(lineup_json['__Lineup__'])
+    #     lineup.__dict__.update(json.loads(lineup_json['__Lineup__']))
+    #     print(lineup)
+    #     return lineup
+    # return lineup_json
+
+    if "__Lineup__" in lineup_json:
+        lineup = Lineup()
+        lineup.__dict__.update(lineup_json["__Lineup__"])
+        # The next line returns a date object in spite of the compiler complaint
+        lineup.__dict__.update({'date': date.fromisoformat(lineup.date)})
+        # print(lineup.performers)
+        # print(type(lineup.performers))
+        # print(str(lineup.performers))
+        # lineup.__dict__.update({"performers": json.loads(str(lineup.performers), object_hook=performer_json_to_py)})
+        lineup.__dict__.update({'performers': tuple(json.loads(lineup.performers, object_hook=performer_json_to_py))})
+        # print(lineup.performers)
+        lineup.__dict__.update({'_Lineup__i': 0})
+        # # print(str(lineup.date))
+        # print(type(lineup.date))
+        # print(lineup.date)
+        # # lineup.date = datetime.fromisoformat(lineup.date.split('T')[0])
+        # # lineup.date = datetime.fromisoformat(lineup.date).date()
+        # lineup.date = datetime.fromisoformat(lineup.date)
+        return lineup
+    return lineup_json
+
+
 if __name__ == "__main__":
 
     # pass
@@ -119,56 +184,84 @@ if __name__ == "__main__":
     print([performer.name for performer in day2_lineup.performers])
     print()
 
-    # Check the alternative constructor 1 (@classmethod from_name_list(name_list))
-    name_list = [performer.name for performer in day2_lineup.performers]
-    lineup = Lineup.from_name_list(name_list)
-    print(lineup)
-    print()
-
-    # Check the alternative constructor 2 (@classmethod from_lineup_str(lineup_str))
-    lineup_str = day2_lineup.__str__()
-    day2_lineup = Lineup.from_lineup_str(lineup_str)
-    print('Day 2 lineup reconstructed from str:', day2_lineup)
-    print()
-
-    # Check date validator (@staticmethod validate_date(date))
-    print(Lineup.is_date_valid(date(1967, 6, 1)))
-    print(Lineup.is_date_valid(date(1967, 6, 15)))
-    print()
-
-    # Check the iterator
-    for performer in day2_lineup:
-        print(performer.name)
-    print()
-
-    # Repeated attempt to run the iterator fails, because the iterator is exhausted
-    for performer in day2_lineup:
-        print(performer.name)
-    print()
-
-    # Demonstrate generators
-    print(next_performer(day2_lineup))
-    next_p = next_performer(day2_lineup)
-    print(next(next_p))
-    print(next(next_p))
-    print(next(next_p))
-    print(next(next_p))
-    # # print(next(next_p))                                   # raises StopIteration
+    # # Check the alternative constructor 1 (@classmethod from_name_list(name_list))
+    # name_list = [performer.name for performer in day2_lineup.performers]
+    # lineup = Lineup.from_name_list(name_list)
+    # print(lineup)
     # print()
-    # # for performer in next_performer(day2_lineup):
-    # #     print(performer)
-    # # print('No more.')
+    #
+    # # Check the alternative constructor 2 (@classmethod from_lineup_str(lineup_str))
+    # lineup_str = day2_lineup.__str__()
+    # day2_lineup = Lineup.from_lineup_str(lineup_str)
+    # print('Day 2 lineup reconstructed from str:', day2_lineup)
+    # print()
+    #
+    # # Check date validator (@staticmethod validate_date(date))
+    # print(Lineup.is_date_valid(date(1967, 6, 1)))
+    # print(Lineup.is_date_valid(date(1967, 6, 15)))
+    # print()
+    #
+    # # Check the iterator
+    # for performer in day2_lineup:
+    #     print(performer.name)
+    # print()
+    #
+    # # Repeated attempt to run the iterator fails, because the iterator is exhausted
+    # for performer in day2_lineup:
+    #     print(performer.name)
+    # print()
+    #
+    # # Demonstrate generators
+    # print(next_performer(day2_lineup))
+    # next_p = next_performer(day2_lineup)
+    # print(next(next_p))
+    # print(next(next_p))
+    # print(next(next_p))
+    # print(next(next_p))
+    # # # print(next(next_p))                                   # raises StopIteration
+    # # print()
+    # # # for performer in next_performer(day2_lineup):
+    # # #     print(performer)
+    # # # print('No more.')
+    #
+    # # # Demonstrate generator expressions
+    # # next_p = (performer for performer in day2_lineup.performers)
+    # # print(next(next_p))
+    # # print(next(next_p))
+    # # print(next(next_p))
+    # # print(next(next_p))
+    # next_p = next_performer(day2_lineup)
+    # print(list(next_p))                                     # list of Performer objects created by the generator
+    # print(p.name for p in list(next_p))                     # this is just a generator expression inside ()!
+    # # print(list(p.name for p in list(next_p)))               # list of Performer names created by the generator expr.
 
-    # # Demonstrate generator expressions
-    # next_p = (performer for performer in day2_lineup.performers)
-    # print(next(next_p))
-    # print(next(next_p))
-    # print(next(next_p))
-    # print(next(next_p))
-    next_p = next_performer(day2_lineup)
-    print(list(next_p))                                     # list of Performer objects created by the generator
-    print(p.name for p in list(next_p))                     # this is just a generator expression inside ()!
-    # print(list(p.name for p in list(next_p)))               # list of Performer names created by the generator expr.
+    # Demonstrate JSON encoding/decoding of Lineup objects
+    # Single object
+    day2_lineup_json = json.dumps(day2_lineup, cls=LineupEncoder, indent=4)
+    print(day2_lineup_json)
+    d2l = json.loads(day2_lineup_json, object_hook=lineup_json_to_py)
+    print(d2l)
+    print(day2_lineup)
+    # The following line causes # RecursionError: maximum recursion depth exceeded (???);
+    # see https://stackoverflow.com/questions/14749225/maximum-recursion-depth-exceeded-when-property-is-applied-to-instance-variab
+    # print(d2l == day2_lineup)
+    print()
 
+    # List of objects
+    performers = [melanie, arloGuthrie]
+    day1_lineup = Lineup(*performers, date=date(1969, 8, 15))
+    performers = [gratefulDead, jeffersonAirplane, theWho, ccr]
+    day2_lineup = Lineup(*performers, date=date(1969, 8, 16))
+    performers = [csny, jimiHendrix, theBand]
+    day3_lineup = Lineup(*performers, date=date(1969, 8, 17))
+
+    lineups = [day1_lineup, day2_lineup, day3_lineup]
+    lineups_json = json.dumps(lineups, cls=LineupEncoder, indent=4)
+    print(lineups_json)
+    lineups_py = json.loads(lineups_json, object_hook=lineup_json_to_py)
+    # print(lineups_py)
+    for l in lineups_py:
+        print(l)
+    print()
 
 

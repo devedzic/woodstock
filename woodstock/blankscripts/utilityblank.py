@@ -37,3 +37,14 @@ if __name__ == '__main__':
 
     pass
 
+    # Demonstrate pathlib.Path
+    # - user's home dir: Path.home()
+    # - current dir: Path.cwd(), Path('.'), Path()
+    # - absolute path: <path>.absolute()
+    # - parent dir: <path>.parent
+    # - new dir: <newDir> = <path> / '<subdir1>/<subdir2>/.../<subdirN>'
+    #            <newDir>.mkdir(parents=True, exist_ok=True)
+    # - remove dir: <dir>.rmdir()                                           # requires the <dir> to be empty
+    # - project dir: settings.PROJECT_DIR
+
+    # Demonstrate get_project_dir(), get_data_dir()

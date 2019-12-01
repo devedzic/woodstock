@@ -3,6 +3,7 @@ It includes a list of Performer objects and a show date for these performers.
 """
 
 from datetime import date, datetime, time
+import json
 
 from woodstock.music.performer import Performer
 from woodstock.util.utility import format_date
@@ -55,6 +56,21 @@ def next_performer(lineup):
     """
 
 
+class LineupEncoder(json.JSONEncoder):
+    """JSON encoder for Lineup objects.
+    """
+
+    def default(self, o):
+        # recommendation: always use double quotes with JSON
+
+        pass
+
+
+def lineup_json_to_py(lineup_json):
+    """JSON decoder for Lineup objects (object_hook parameter in json.loads()).
+    """
+
+
 if __name__ == "__main__":
 
     pass
@@ -102,6 +118,13 @@ if __name__ == "__main__":
     print()
 
     # Demonstrate generator expressions
+    print()
+
+    # Demonstrate JSON encoding/decoding of Lineup objects
+    # Single object
+    print()
+
+    # List of objects
     print()
 
 

@@ -6,8 +6,9 @@ from datetime import date
 import sys
 from pickle import dump, load
 
+from woodstock.music import lineup
+from woodstock.music.lineup import Lineup, LineupEncoder, lineup_json_to_py
 from woodstock.music.performer import *
-from woodstock.music.lineup import *
 from woodstock.util.utility import *
 
 
@@ -32,6 +33,9 @@ class Festival:
     def __str__(self):
         lineups = '\n\t'.join(str(lineup) for lineup in self.lineups)
         return f'{self.name} ({format_date(self.start)} - {format_date(self.end)})' + '\n\t' + lineups
+
+    def __eq__(self, other):
+        return self == other if isinstance(other, Festival) else False
 
 
 class FestivalError(Exception):
@@ -62,6 +66,36 @@ class LineupDateException(FestivalError):
     def __init__(self, lineup, start, end):
         self.message = f'lineup date ({format_date(lineup.date)}) not between start and end dates of the festival ' \
                        f'({format_date(start)} - {format_date(end)}).'
+
+
+class FestivalEncoder(json.JSONEncoder):
+    """JSON encoder for Festival objects.
+    """
+
+    def default(self, o):
+        # recommendation: always use double quotes with JSON
+
+        if isinstance(o, Festival):
+            d = o.__dict__.copy()
+            d['start'] = o.start.isoformat()
+            d['end'] = o.end.isoformat()
+            d['lineups'] = json.dumps(o.lineups, cls=LineupEncoder, indent=4)
+            return {"__Festival__": d}
+        return {f"__{o.__class__.name}__": o.__dict__}
+
+
+def festival_json_to_py(festival_json):
+    """JSON decoder for Festival objects (object_hook parameter in json.loads()).
+    """
+
+    if "__Festival__" in festival_json:
+        f = Festival('', '', date.today(), date.today())
+        f.__dict__.update(festival_json['__Festival__'])
+        f.start = date.fromisoformat(f.start)
+        f.end = date.fromisoformat(f.end)
+        f.lineups = tuple(json.loads(f.lineups, object_hook=lineup.lineup_json_to_py))
+        return f
+    return festival_json
 
 
 if __name__ == "__main__":
@@ -203,6 +237,20 @@ if __name__ == "__main__":
     f = get_data_dir() / 'day1_lineup.txt'
     d2_lineup_text = f.read_text()
     print(d2_lineup_text)
+
+    # Demonstrate JSON encoding/decoding of Festival objects
+    # Single object
+    woodstock_json = json.dumps(woodstock, cls=FestivalEncoder, indent=4)
+    print(woodstock_json)
+    woodstock_py = json.loads(woodstock_json, object_hook=festival_json_to_py)
+    print(woodstock_py)
+    # The following line causes # RecursionError: maximum recursion depth exceeded (???);
+    # see https://stackoverflow.com/questions/14749225/maximum-recursion-depth-exceeded-when-property-is-applied-to-instance-variab
+    # print(woodstock == woodstock_py)
+    print()
+
+    # List of objects
+    print()
 
 
 

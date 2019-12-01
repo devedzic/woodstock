@@ -4,6 +4,7 @@
 
 from woodstock.util import utility
 from woodstock.music.enums import Vocals, Instrumet
+import json
 
 
 class Performer:
@@ -90,6 +91,29 @@ class Performer:
         else:
             name = split[0].rstrip()
         return cls(name, is_band)
+
+
+class PerformerEncoder(json.JSONEncoder):
+    """JSON encoder for Performer objects.
+    """
+
+    def default(self, o):
+        if isinstance(o, Performer):
+            return {"__Performer__": o.__dict__}                # recommendation: always use double quotes with JSON
+        return {f"__{o.__class__.__name__}__": o.__dict__}
+        # Alternatively, raise TypeError or let JSONEncoder do it:
+        # return json.JSONEncoder.default(o)
+
+
+def performer_json_to_py(performer_json):
+    """JSON decoder for Performer objects (object_hook parameter in json.loads()).
+    """
+
+    if "__Performer__" in performer_json:
+        p = Performer("")
+        p.__dict__.update(performer_json["__Performer__"])
+        return p
+    return performer_json
 
 
 class Singer(Performer):
@@ -280,5 +304,25 @@ if __name__ == "__main__":
                                vocals=Vocals.LEAD_VOCALS,
                                instrument=Instrumet.RHYTHM_GUITAR)
     print(melanie)
+    print()
+
+    # Demonstrate JSON encoding/decoding of Performer objects
+    # Single object
+    theBand_json = json.dumps(theBand, cls=PerformerEncoder, indent=4)
+    print(theBand_json)
+    # print(type(theBand_json))
+    theBand_python = json.loads(theBand_json, object_hook=performer_json_to_py)
+    # print(theBand_python)
+    print(theBand_python == theBand)
+    print()
+
+    # List of objects
+    day3_performers = [csny, jimiHendrix, theBand]
+    d3p_json = json.dumps(day3_performers, cls=PerformerEncoder)
+    print(d3p_json)
+    print(type(d3p_json))
+    d3p_python = json.loads(d3p_json, object_hook=performer_json_to_py)
+    for p in d3p_python:
+        print(p)
     print()
 
